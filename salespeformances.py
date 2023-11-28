@@ -1,9 +1,5 @@
 import numpy as np 
 import pandas as pd 
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.impute import SimpleImputer
-from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 
 # Input data files are available in the read-only "../input/" directory
@@ -168,88 +164,3 @@ plt.ylabel('Number of Orders')
 plt.title('Number of Orders Over Time')
 plt.show()
 
-# Assuming 'number_of_orders' is the target variable, and you have features related to products and dates
-
-# Features (X) and Target variable (y)
-X_numeric = df_5[['product_weight_g', 'product_length_cm', 'product_height_cm', 'product_width_cm']]
-X_datetime = df_5[['order_purchase_timestamp']]
-y = df_5.groupby('order_purchase_timestamp')['order_id'].count().reset_index(name='number_of_orders')
-
-# Convert the 'order_purchase_timestamp' to a numerical feature (e.g., days since the earliest timestamp)
-X_datetime['order_purchase_timestamp'] = pd.to_datetime(X_datetime['order_purchase_timestamp'])
-X_datetime['days_since_earliest'] = (X_datetime['order_purchase_timestamp'] - X_datetime['order_purchase_timestamp'].min()).dt.days
-
-# Combine X_numeric, X_datetime, and y into one DataFrame for easier handling
-data = pd.concat([X_numeric, X_datetime, y], axis=1)
-
-# Drop rows with NaN values in the target variable
-data = data.dropna(subset=['number_of_orders'])
-
-# Split the data into features (X) and the target variable (y)
-X = data[['product_weight_g', 'product_length_cm', 'product_height_cm', 'product_width_cm', 'days_since_earliest']]
-y = data['number_of_orders']
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Handle missing values in features
-imputer = SimpleImputer(strategy='mean')
-X_train_imputed = imputer.fit_transform(X_train)
-X_test_imputed = imputer.transform(X_test)
-
-# Initialize the linear regression model
-model = LinearRegression()
-
-# Train the model
-model.fit(X_train_imputed, y_train)
-
-# Make predictions on the test set
-y_pred = model.predict(X_test_imputed)
-
-# Evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-print(f'Mean Squared Error: {mse}')
-
-# Visualize actual vs. predicted values with actual date on the x-axis
-plt.scatter(X_test['days_since_earliest'], y_test, color='black', label='Actual')
-plt.scatter(X_test['days_since_earliest'], y_pred, color='blue', label='Predicted')
-plt.xlabel('Days since the earliest purchase timestamp')
-plt.ylabel('Number of Orders')
-plt.legend()
-plt.show()
-
-label_encoder = LabelEncoder()
-data['product_name_encoded'] = label_encoder.fit_transform(data['product_name'])
-
-# Split the data into features (X) and the target variable (y)
-X = data[['product_name_encoded', 'product_weight_g', 'product_length_cm', 'product_height_cm', 'product_width_cm', 'days_since_earliest']]
-y = data['number_of_orders']
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Handle missing values in features
-imputer = SimpleImputer(strategy='mean')
-X_train_imputed = imputer.fit_transform(X_train)
-X_test_imputed = imputer.transform(X_test)
-
-# Initialize the linear regression model
-model = LinearRegression()
-
-# Train the model
-model.fit(X_train_imputed, y_train)
-
-# Make predictions on the test set
-y_pred = model.predict(X_test_imputed)
-
-# Evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-print(f'Mean Squared Error: {mse}')
-
-# Visualize actual vs. predicted values with actual date on the x-axis
-plt.scatter(X_test['days_since_earliest'], y_test, color='black', label='Actual')
-plt.scatter(X_test['days_since_earliest'], y_pred, color='blue', label='Predicted')
-plt.xlabel('Days since the earliest purchase timestamp')
-plt.ylabel('Number of Orders')
-plt.legend()
-plt.show()
